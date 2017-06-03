@@ -5,6 +5,7 @@ Game using Gameduino with a standard Arduino. This was implemented on a Duemilan
 
 # Requirements:
 
+* Arduino IDE
 * Gameduino library from http://excamera.com/sphinx/gameduino/
 * SNES controller library
 * An older driver for Atmega. The Gameduino library is incompatable with the newer one.
