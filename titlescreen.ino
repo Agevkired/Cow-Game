@@ -9,37 +9,127 @@
 #include "player.h"
 #include "wolf.h"
 
-#define BG_BLUE 33
-#define BG_ZERO  1
-#define BG_COW  24
-#define BG_B    21
-#define BG_TIME 11
+#define greenbg 0x03E0  //green 0 0 31 0
+#define whitebg 0x7FFF
+#define skyblue 0x1E7B //0x0C7F
+
+#define BG_BLUE		1
+#define BG_ZERO		2
+#define BG_A		12
+#define BG_TIME		38
+#define BG_AMOUNT	39
+#define BG_DASH		40
+#define BG_COW		41
+#define BG_CTRL		42
+#define BG_CTRR		43
+#define BG_CROSS	44
+
+#define FENCE_UL 45
+#define FENCE_UM 47 //4 pieces
+#define FENCE_UR 51
+#define FENCE_L  53
+#define FENCE_R  55
+#define FENCE_LL 57
+#define FENCE_LM 59 //4 pieces
+#define FENCE_LR 63
+
+#define COW_TITLE	7
+#define COW_TAIL	19
+#define GAME_TITLE	21
 
 int state=0;
 //static int cowup, cowdown, cowleft, cowright, coweat;  //implement cow control
 //static int crossup, crossdown, crossleft, crossright, crossfire;  //implement crosshair control
 SNESpad nintendo(5,6,7);
-struct cow player;
-struct crosshair pcrosshair;
-struct grass grasses[10];
-struct wolf wolves[10];
+cow player;
+crosshair pcrosshair;
+grass grasses[10];
+wolf wolves[10];
+
 static unsigned long highscore;
 static unsigned long score;
 static uint8_t bonus;
 static unsigned long bonustimer;
 static uint8_t lives;
-static boolean lefty;
+static bool lefty;
 static byte switchsidetimer;
 static byte bonuslife;
 static unsigned long bonusscore;
-static boolean title;
-static boolean holdselect;
+static bool title;
+static bool holdselect;
 
 void gameloop();
 
 static uint16_t atxy(byte x, byte y)
 {
   return RAM_PIC + 64 * y + x;
+}
+
+byte fetchletter(char x)
+{
+	byte result;
+	result = byte(x - 65); //assumes capital letter
+	result += BG_A; //offsets
+	return result;
+}
+
+void drawtitleCOW(byte x, byte y)
+{
+  for(int n=0; n<6; n++)
+  {
+    draw_sprite(x+16*n, y,    COW_TITLE+2*n,   0);
+    draw_sprite(x+16*n, y+16, COW_TITLE+1+2*n, 0);
+  }
+  draw_sprite(x+16*6, y+16, COW_TAIL,   0);
+  draw_sprite(x+16*7, y+16, COW_TAIL+1, 0);
+}
+
+void drawtitleGAME(byte x, byte y)
+{
+  for(int n=0; n<8; n++)
+  {
+    draw_sprite(x+16*n, y,    GAME_TITLE+2*n,   0);
+    draw_sprite(x+16*n, y+16, GAME_TITLE+1+2*n, 0);
+  }
+}
+
+void draw_title(byte xcow, byte ycow, byte xgame, byte ygame)
+{
+  drawtitleCOW(xcow, ycow);
+  drawtitleGAME(xgame, ygame);
+}
+
+static void draw_fence()
+{
+	//CORNERS
+	GD.wr(atxy(2,5), FENCE_UL);
+	GD.wr(atxy(2,6), FENCE_UL+1);
+	GD.wr(atxy(47,5), FENCE_UR);
+	GD.wr(atxy(47,6), FENCE_UR+1);
+	GD.wr(atxy(2,33), FENCE_LL);
+	GD.wr(atxy(2,34), FENCE_LL+1);
+	GD.wr(atxy(47,33), FENCE_LR);
+	GD.wr(atxy(47,34), FENCE_LR+1);
+	//TOP BOTTOM MIDDLE
+	for(int n=0; n<22; n++)
+	{
+		GD.wr(atxy(3+2*n,5), FENCE_UM);
+		GD.wr(atxy(3+2*n,6), FENCE_UM+1);
+		GD.wr(atxy(4+2*n,5), FENCE_UM+2);
+		GD.wr(atxy(4+2*n,6), FENCE_UM+3);
+		GD.wr(atxy(3+2*n,33), FENCE_LM);
+		GD.wr(atxy(3+2*n,34), FENCE_LM+1);
+		GD.wr(atxy(4+2*n,33), FENCE_LM+2);
+		GD.wr(atxy(4+2*n,34), FENCE_LM+3);		
+	}
+	//SIDES
+	for(int n=0; n<13; n++)
+	{
+		GD.wr(atxy(2,7+2*n), FENCE_L);
+		GD.wr(atxy(2,8+2*n), FENCE_L+1);
+		GD.wr(atxy(47,7+2*n), FENCE_R);
+		GD.wr(atxy(47,8+2*n), FENCE_R+1);
+	}		
 }
 
 static void draw_score(uint16_t dst, long n)
@@ -55,54 +145,60 @@ static void draw_score(uint16_t dst, long n)
 
 static void draw_bonus(uint8_t dst, byte n)
 {
-  GD.wr(dst, BG_ZERO + (n / 10) % 10);          // tens
+  GD.wr(dst,     BG_ZERO + (n / 10) % 10);      // tens
   GD.wr(dst + 1, BG_ZERO + n % 10);             // ones
 }
 
 static void draw_BG()
 {
-  for(int n=0; n<50; n++) //CLEARS TOP ROW
+  for(int n=0; n<50; n++) //CLEARS TOP 3 ROWS
   {
-    GD.wr(n, BG_BLUE);
+    GD.wr(atxy(n,0), BG_BLUE);
+    GD.wr(atxy(n,1), BG_BLUE);
+    GD.wr(atxy(n,2), BG_BLUE);
   }
 
-  long x=20;
-  for(int n=24; n>16; n--) //DRAWS SCORE AND HI-SCORE
-  {
-    GD.wr(atxy(n,0), x);
-    if(n>19)
-    {
-      GD.wr(atxy(n,1), x);
-    }
-    x--;
-  }
+  GD.wr(atxy(17,0), fetchletter('H')); //DRAWS SCORE AND HI-SCORE
+  GD.wr(atxy(18,0), fetchletter('I'));
+  GD.wr(atxy(19,0), BG_DASH);
+  GD.wr(atxy(20,0), fetchletter('S'));
+  GD.wr(atxy(20,1), fetchletter('S'));
+  GD.wr(atxy(21,0), fetchletter('C'));
+  GD.wr(atxy(21,1), fetchletter('C'));
+  GD.wr(atxy(22,0), fetchletter('O'));
+  GD.wr(atxy(22,1), fetchletter('O'));
+  GD.wr(atxy(23,0), fetchletter('R'));
+  GD.wr(atxy(23,1), fetchletter('R'));
+  GD.wr(atxy(24,0), fetchletter('E'));
+  GD.wr(atxy(24,1), fetchletter('E'));
+  
   for(int n=26; n<33; n++)
   {
     GD.wr(atxy(n,0), BG_ZERO);
     GD.wr(atxy(n,1), BG_ZERO);
   }
 
-  GD.wr(atxy(38,1), BG_B);   //DRAWS BONUS
-  GD.wr(atxy(39,1), BG_B-3);
-  GD.wr(atxy(40,1), BG_B+2);
-  GD.wr(atxy(41,1), BG_B+1);
-  GD.wr(atxy(42,1), BG_B-5);
-  GD.wr(atxy(43,1), BG_B-9);
+  GD.wr(atxy(38,1), fetchletter('B'));   //DRAWS BONUS
+  GD.wr(atxy(39,1), fetchletter('O'));
+  GD.wr(atxy(40,1), fetchletter('N'));
+  GD.wr(atxy(41,1), fetchletter('U'));
+  GD.wr(atxy(42,1), fetchletter('S'));
+  GD.wr(atxy(43,1), BG_AMOUNT);
   GD.wr(atxy(44,1), BG_ZERO);
   GD.wr(atxy(45,1), BG_ZERO);
 
   GD.wr(atxy(4,1), BG_COW); //DRAW LIVES
-  GD.wr(atxy(5,1), BG_B-9);
+  GD.wr(atxy(5,1), BG_AMOUNT);
   GD.wr(atxy(6,1), BG_ZERO);
   GD.wr(atxy(7,1), BG_ZERO);
   
   for(byte n=0; n<50; n++)
   {
-    GD.wr(atxy(n,39), 24);
+    GD.wr(atxy(n,39), 0);
   }
-  GD.wr(atxy(21,2), 25); //LEFT DRAW CONTROL SCHEME
-  GD.wr(atxy(28,2), 26); //RIGHT
-  GD.wr(atxy(27,2), 27); //CROSSHAIR
+  GD.wr(atxy(21,2), BG_CTRL); //LEFT DRAW CONTROL SCHEME
+  GD.wr(atxy(28,2), BG_CTRR); //RIGHT
+  GD.wr(atxy(27,2), BG_CROSS); //CROSSHAIR
   GD.wr(atxy(22,2), BG_COW);
 }
 
@@ -144,7 +240,7 @@ void setupgame()
 
   for(uint8_t n=0; n<10; n++) //set up grasses
   {
-    grasses[n].spawn = false;
+    grasses[n].spawned = false;
     grasses[n].spawntimer = 72;
     grasses[n].spawning = 0;
   }
@@ -208,22 +304,20 @@ void setupgame()
 void setup()
 {
   GD.begin();
-  for (byte y = 0; y < 37; y++) //DEFAULT BG
-    GD.copy(RAM_PIC + y * 64, image_pic + y * 50, 50);
   GD.copy(RAM_CHR, image_chr, sizeof(image_chr));
   GD.copy(RAM_PAL, image_pal, sizeof(image_pal));
 
   //SPRITES
-  GD.copy(RAM_SPRPAL, sprite_sprpal, sizeof(sprite_sprpal));
+  GD.copy(PALETTE4A, sprite_sprpal_4a, sizeof(sprite_sprpal_4a));
+  GD.copy(PALETTE4B, sprite_sprpal_4b, sizeof(sprite_sprpal_4b));
+  GD.copy(PALETTE16A, sprite_sprpal_16a, sizeof(sprite_sprpal_16a));
   GD.copy(RAM_SPRIMG, sprite_sprimg, sizeof(sprite_sprimg));
 
-  // For show, randomly scatter the frames on the screen
-  /*GD.__wstartspr(0);
-   for (int anim = 0; anim < SPRITE_FRAMES; anim++)
-   draw_sprite(random(400), random(300), anim, 0);*/
-  //GD.__end();
 
+  GD.wr16(BG_COLOR, greenbg); //set bg transparent color
   draw_BG();
+  draw_fence();
+  //draw_title(13, 9, 21, 14);
 
   lefty=false;
   title = true;
@@ -240,10 +334,26 @@ void loop(){
 	
 	state = nintendo.buttons();
 	if(!title){
+		GD.__wstartspr(0);
+		draw_title(100, 400, 100, 400);
+		while(GD.spr < 255)
+		{
+			GD.xhide();
+		}
+		GD.__end();
+		GD.waitvblank();
 		Serial.print(lefty);
 		gameloop();
 		state = 0; //just in case
 	}
+	
+	GD.__wstartspr(0);
+	draw_title(104, 72, 168, 112);
+	while(GD.spr < 255)
+	{
+		GD.xhide();
+	}
+	GD.__end();
 	GD.waitvblank();
     if(holdselect){ //SELECT changes left hand mode
         if(!(state & SNES_SELECT)){
@@ -257,11 +367,11 @@ void loop(){
 			if(lefty){
 				lefty = false;
 				GD.wr(atxy(22,2), BG_COW);
-				GD.wr(atxy(27,2), 27);
+				GD.wr(atxy(27,2), BG_CROSS);
 			}
 			else{
 				lefty = true;
-				GD.wr(atxy(22,2), 27);
+				GD.wr(atxy(22,2), BG_CROSS);
 				GD.wr(atxy(27,2), BG_COW);
             }
         }
@@ -303,30 +413,34 @@ void gameloop()
 	  for(uint8_t n=0; n<10; n++) //spawns grass
 	  {
 		grasses_spr[n]=GD.spr;
-		spawn(&grasses[n]);
+		grasses[n].spawn();
 		//draw_sprite(grasses[n].x, grasses[n].y, 8, 0);
 	  }
 
 	  cowspr=GD.spr; //player action
-	  cowmove(state, &player, &pcrosshair);
+	  player.cowmove(state);
 	  //draw_sprite(player.x, player.y, player.frame, player.rotate);
 	  
 	  for(uint8_t n=0; n<10; n++) //spawns wolves
 	  {
 		wolves_spr[n]=GD.spr;
-		wolfspawn(&wolves[n], score);
+		wolves[n].wolfspawn(score);
 		if(wolves[n].spawn){
-			wolfmove(&wolves[n], &player, score);
+			wolves[n].wolfmove(player.x, player.y, score);
 		}
 		draw_sprite(wolves[n].x, wolves[n].y, wolves[n].frame, wolves[n].rotate);
 	  }
 	  shotspr=GD.spr;
-	  crosshairmove(state, &pcrosshair, &crosshairspr);
+	  pcrosshair.crosshairmove(state, &crosshairspr);
+	  while(GD.spr < 255)
+	  {
+		  GD.xhide();
+	  }
 	  GD.__end();
 	  
 	  //BEGIN COLLISION DETECTION
 	  GD.waitvblank();
-	  boolean grasscoll[10], wolfcoll[10], crosscoll[10], shotcoll[10];
+	  bool grasscoll[10], wolfcoll[10], crosscoll[10], shotcoll[10];
 	  for(byte n=0; n<10; n++)
 	  {
 		grasscoll[n]=(GD.rd(COLLISION+cowspr)==grasses_spr[n]);
@@ -346,7 +460,7 @@ void gameloop()
 			}
 			grasses[n].x=400;//move grass out of way
 			grasses[n].y=400;
-			grasses[n].spawn=false;
+			grasses[n].spawned=false;
 			
 			if(bonus==0){
 			  score++;
@@ -437,21 +551,23 @@ void gameloop()
 	  }
 	}
 	setupgame(); //RESET EVERYTHING EXCEPT HIGH SCORE
-	GD.wr(atxy(20,2), 30); //G DRAW GAME OVER
-	GD.wr(atxy(21,2), 29); //A 
-	GD.wr(atxy(22,2), 31); //M
-	GD.wr(atxy(23,2), 20); //E
-	GD.wr(atxy(26,2), 18); //O
-	GD.wr(atxy(27,2), 32); //V
-	GD.wr(atxy(28,2), 20); //E
-	GD.wr(atxy(29,2), 19); //R
+	GD.wr(atxy(20,2), fetchletter('G')); //G DRAW GAME OVER
+	GD.wr(atxy(21,2), fetchletter('A')); //A 
+	GD.wr(atxy(22,2), fetchletter('M')); //M
+	GD.wr(atxy(23,2), fetchletter('E')); //E
+	GD.wr(atxy(26,2), fetchletter('O')); //O
+	GD.wr(atxy(27,2), fetchletter('V')); //V
+	GD.wr(atxy(28,2), fetchletter('E')); //E
+	GD.wr(atxy(29,2), fetchletter('R')); //R
 	delay(3000);
-	GD.wr(SPR_DISABLE, 1);
-	for (byte y = 0; y < 37; y++) //DEFAULT BG
-    GD.copy(RAM_PIC + y * 64, image_pic + y * 50, 50);
 	GD.copy(RAM_CHR, image_chr, sizeof(image_chr));
 	GD.copy(RAM_PAL, image_pal, sizeof(image_pal));
-	draw_BG(); //RESET TO TITLE BG
+	
+	GD.wr16(BG_COLOR, greenbg); //set bg transparent color
+	draw_BG();
+	draw_fence();
+	draw_title(13, 9, 21, 14);
+	
 	draw_score(atxy(26, 0), highscore);
 	lefty=false; //RESET TO TITLE
 	title = true;
