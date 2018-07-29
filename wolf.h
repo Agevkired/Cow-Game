@@ -1,7 +1,16 @@
-struct wolf
+#define chaser_neutral 	42
+#define chaser_walk		43
+#define chaser_walk3	45
+
+#define charger_neutral 46
+#define charger_walk	47
+#define charger_walk3	49
+
+class wolf
 {
+  public:
   int x, y;
-  boolean spawn; //if spawned
+  bool spawn; //if spawned
   uint16_t spawntimer; //time needed to respawn
   uint16_t spawning;   //counter
   uint16_t blinktimer; //time needed to start moving
@@ -9,9 +18,9 @@ struct wolf
   byte rotate;
   byte frame; //which sprite to display
   byte animtimer; //timer for animation
-  boolean animframe; //helps switch between 3 frames in order 1,3,2,3,1,3,2,3...
-  boolean charging;  //for charging wolf
-  boolean avoid; //move random when targeted
+  bool animframe; //helps switch between 3 frames in order 1,3,2,3,1,3,2,3...
+  bool charging;  //for charging wolf
+  bool avoid; //move random when targeted
   uint16_t movingtimer;  //time until starts moving in another direction
   uint16_t moving; //counter for moving
   byte movedirection; //direction for moving 0-7 N,NE,E,SE,S,SW,W,NW
@@ -21,294 +30,326 @@ struct wolf
   byte moveduration; //how long specific movement will last
   byte movecounter; //counter for movement type
   long scorespawn; //how much points needed for this to spawn
+  //functions
+  void wolfspawn(long score);
+  void wolfanim();
+  void wolfblink(); //makes wolf flicker
+  void randomwolfmove();
+  void wolfcharging();
+  void wolfchase(int cowx, int cowy); //CHASE COW
+  void wolfmove(int cowx, int cowy, unsigned long score);
 };
 
-void wolfspawn(struct wolf *wolf, long score)
+void wolf::wolfspawn(long score)
 {
-  if((!wolf->spawn)&&(score>wolf->scorespawn)) //IF HASN'T SPAWN YET AND POINTS PAST A THRESHOLD
+  if((!spawn)&&(score>scorespawn)) //IF HASN'T SPAWN YET AND POINTS PAST A THRESHOLD
   {
-    if(wolf->spawning>wolf->spawntimer)
+    if(spawning>spawntimer)
     {
+	  type = 0; //default to chaser
       byte location = random(127)%4;
       if(location==0) //NORTH
       {
-        wolf->y=32;
-        wolf->x=random(24,377); //24-376
+        y=32;
+        x=random(24,377); //24-376
       }
       else if(location==1) //EAST
       {
-        wolf->x=392;
-        wolf->rotate=0;
-        wolf->y=random(64,257); //64-256
+        x=392;
+        rotate=0;
+        y=random(64,257); //64-256
       }
       else if(location==2) //SOUTH
       {
-        wolf->y=288;
-        wolf->x=random(24,377);
+        y=288;
+        x=random(24,377);
       }
       else if(location==3) //WEST
       {
-        wolf->x=8;
-        wolf->rotate=2;
-        wolf->y=random(64,257);
+        x=8;
+        rotate=2;
+        y=random(64,257);
       }
-      wolf->movingtimer=random(216,289);
+      movingtimer=random(216,289); //redo this
       if(score>1000) //WHEN TO SPAWN CHARGERS
       {
-        wolf->type=random(63)%2;
-        if(wolf->type==1)
+        type=random(63)%2;
+        if(type==1)
         {
-          wolf->movingtimer=random(36,73);
+          movingtimer=random(36,73); //redo this
         }
       }
-      //wolf->chasespeed=(random(99))%2;
-      wolf->chasespeed=0;
-      wolf->spawn=true;
-      wolf->moveswitch=random(150)%10;
-      //wolf->spawning=0;
+      //chasespeed=(random(99))%2;
+      chasespeed=0;
+      spawn=true;
+      moveswitch=random(150)%10;
+      //spawning=0;
     }
     else
     {
-      wolf->spawning++;
-      wolf->x=420;
-      wolf->y=420;
+      spawning++;
+      x=420;
+      y=420;
     }
   }
-  //draw_sprite(wolf->x, wolf->y, wolf->frame, wolf->rotate);
+  //draw_sprite(x, y, frame, rotate);
 }
 
-void wolfanim(struct wolf *wolf)
+void wolf::wolfanim()
 {
-  if(wolf->animtimer>5) //frames each animation lasts
+  if(animtimer>5) //frames each animation lasts
   {
-    if(wolf->frame==13+(wolf->type*4))
+    if(frame==chaser_walk3+(type*4))
     {
-      if(wolf->animframe)
+      if(animframe)
       {
-        wolf->frame=12+(wolf->type*4);
-        wolf->animframe=false;
+        frame=chaser_walk+1+(type*4);
+        animframe=false;
       }
       else
       {
-        wolf->frame=11+(wolf->type*4);
-        wolf->animframe=true;
+        frame=chaser_walk+(type*4);
+        animframe=true;
       }
     }
     else
     {
-      wolf->frame=13+(wolf->type*4);
+      frame=chaser_walk3+(type*4);
     }
-    wolf->animtimer=0;
+    animtimer=0;
   }
   else
   {
-    wolf->animtimer++;
+    animtimer++;
   }
 }
 
-void wolfblink(struct wolf *wolf) //makes wolf flicker
+void wolf::wolfblink() //makes wolf flicker
 {
-  if(wolf->animtimer>5) //hopefully 3 times a second
+  if(animtimer>5) //hopefully 3 times a second
   {
-    wolf->animtimer=0;
-    if(wolf->frame==14)
+    animtimer=0;
+    if(frame==charger_neutral)
     {
-      //wolf->frame=10+(wolf->type*4);
-      wolf->frame=10;
+      //frame=10+(type*4);
+      frame=chaser_neutral;
     }
     else
     {
-      //wolf->frame=9;
-      wolf->frame=14;
+      //frame=9;
+      frame=charger_neutral;
     }
   }
   else
   {
-    wolf->animtimer++;
+    animtimer++;
   }
 }
 
-void randomwolfmove(struct wolf *wolf)
+void wolf::randomwolfmove()
 {
-	if(wolf->moving > wolf->movingtimer)
+	if(moving > movingtimer)
 	{
-		wolf->moving=0;
-		wolf->movedirection=random(40)%8;
+		moving=0;
+		movedirection=random(40)%8;
 	}
 	else
 	{
-		wolf->moving++;
-		if((wolf->movedirection==0)||(wolf->movedirection==1)||(wolf->movedirection==7)){//NORTH
-			if(wolf->y > 63){
-				wolf->y--;
+		moving++;
+		if((movedirection==0)||(movedirection==1)||(movedirection==7))//NORTH
+		{
+			if(y > 63)
+			{
+				y--;
 			} 
-			wolfanim(wolf);
+			wolfanim();
 		}//END NORTH
-		if((wolf->movedirection==1)||(wolf->movedirection==2)||(wolf->movedirection==3)){//EAST
-			if(wolf->x < 376){
-				wolf->x++;
+		if((movedirection==1)||(movedirection==2)||(movedirection==3))//EAST
+		{
+			if(x < 376)
+			{
+				x++;
 			}
-			wolf->rotate=2; 
-			wolfanim(wolf);
+			rotate=2; 
+			wolfanim();
 		}//END EAST
-		if((wolf->movedirection==3)||(wolf->movedirection==4)||(wolf->movedirection==5)){//SOUTH
-			if(wolf->y < 256){
-				wolf->y++;
+		if((movedirection==3)||(movedirection==4)||(movedirection==5))//SOUTH
+		{
+			if(y < 256)
+			{
+				y++;
 			} 
-			wolfanim(wolf);
+			wolfanim();
 		}//END SOUTH
-		if((wolf->movedirection==5)||(wolf->movedirection==6)||(wolf->movedirection==7)){//WEST
-			if(wolf->x > 23){
-				wolf->x--;
+		if((movedirection==5)||(movedirection==6)||(movedirection==7))//WEST
+		{
+			if(x > 23)
+			{
+				x--;
 			}
-			wolf->rotate=0; 
-			wolfanim(wolf);
+			rotate=0; 
+			wolfanim();
 		}//END WEST
-		//draw_sprite(wolf->x, wolf->y, wolf->frame, wolf->rotate);
+		//draw_sprite(x, y, frame, rotate);
 	}
 }
 
-void wolfcharging(struct wolf *wolf)
+void wolf::wolfcharging()
 {
-  if(wolf->movedirection==0)//GOING UP
+  if(movedirection==0)//GOING UP
   {
-    if(wolf->y > 64){wolf->y-=3;}
-    else(wolf->charging=false);
+    if(y > 64)
+	{
+	  y-=3;
+	}
+    else
+	{
+	  charging=false;
+	}
   }
-  else if(wolf->movedirection==2)//GOING RIGHT
+  else if(movedirection==2)//GOING RIGHT
   {
-    if(wolf->x < 377){wolf->x+=3; wolf->rotate=2;}
-    else(wolf->charging=false);
+    if(x < 377)
+	{
+	  x+=3; 
+	  rotate=2;
+	}
+    else
+	{
+	  charging=false;
+	}
   }
-  else if(wolf->movedirection==4)//GOING DOWN
+  else if(movedirection==4)//GOING DOWN
   {
-    if(wolf->y < 257){wolf->y+=3;}
-    else(wolf->charging=false);
+    if(y < 257)
+	{
+	  y+=3;
+	}
+    else
+	{
+	  charging=false;
+	}
   }
-  else if(wolf->movedirection==6)//GOING LEFT
+  else if(movedirection==6)//GOING LEFT
   {
-    if(wolf->x > 24){wolf->x-=3; wolf->rotate=0;}
-    else(wolf->charging=false);
+    if(x > 24)
+	{
+	  x-=3; 
+	  rotate=0;
+	}
+    else
+	{
+	  charging=false;
+	}
   }
-  wolfanim(wolf);
-  wolfanim(wolf);
-  wolfanim(wolf);
+  wolfanim();
+  wolfanim();
+  wolfanim();
 }
 
-void wolfchase(struct wolf *wolf, struct cow *cow) //CHASE COW
+void wolf::wolfchase(int cowx, int cowy) //CHASE COW
 {
-  if(wolf->x < cow->x){wolf->x++; wolfanim(wolf); wolf->rotate=2;}
-  else if(wolf->x > cow->x){wolf->x--; wolfanim(wolf); wolf->rotate=0;}
-  if(wolf->y < cow->y){wolf->y++; wolfanim(wolf);}
-  else if(wolf->y > cow->y){wolf->y--; wolfanim(wolf);}
+  if(x < cowx)
+  {
+    x++; 
+	wolfanim(); 
+	rotate=2;
+  }
+  else if(x > cowx)
+  {
+	x--; 
+	wolfanim(); 
+	rotate=0;
+  }
+  if(y < cowy)
+  {
+	y++; 
+	wolfanim();
+  }
+  else if(y > cowy)
+  {
+	y--; 
+	wolfanim();
+  }
 }
 
-void wolfmove(struct wolf *wolf, struct cow *cow, unsigned long sco)
+void wolf::wolfmove(int cowx, int cowy, unsigned long score)
 {
-  if(wolf->spawning > ((wolf->blinktimer)+(wolf->spawntimer)))
+  if(spawning > (blinktimer+spawntimer))
   {
 	  
-    if(wolf->type==0) //CHASING TYPE
+    if(type==0) //CHASING TYPE
     {
 		//wolfchase(wolf, cow);
-		if((wolf->avoid)&&(wolf->movecounter < wolf->moveduration)&&(sco > 500))
+		if((avoid)&&(movecounter < moveduration)&&(score > 500))
 		{
-			randomwolfmove(wolf);
-			wolf->movecounter++;
+			randomwolfmove();
+			movecounter++;
 		}
 		else
 		{
-			wolf->moveduration=random(36,72); //how long wolf will avoid when targeted
-			wolf->avoid = false;
-			wolf->movecounter = 0; //set avoid counter to 0
-			wolf->movedirection=random(40)%8; //randomize movement when called
-			if(wolf->chasecounter > wolf->chasespeed)//CHASE BLOCK
+			moveduration=random(36,72); //how long wolf will avoid when targeted
+			avoid = false;
+			movecounter = 0; //set avoid counter to 0
+			movedirection=random(40)%8; //randomize movement when called
+			if(chasecounter > chasespeed)//CHASE BLOCK
 			{
-				wolfchase(wolf, cow);
-				wolf->chasecounter=0; //chase every other frame
+				wolfchase(cowx, cowy);
+				chasecounter=0; //chase every other frame
 			}
 			else
 			{
-				wolf->chasecounter++;
+				chasecounter++;
 			} //END CHASE BLOCK
-			wolfanim(wolf);
+			wolfanim();
 		}
-	  
-      /*if(wolf->movecounter > wolf->moveduration) //OLD STUFF
-      {
-        wolf->moveswitch=random(150)%10;
-        wolf->moveduration=random(36,145);
-        wolf->movecounter=0;
-      }
-      else
-      {
-        wolf->movecounter++;
-      }
-      
-      if(wolf->moveswitch!=5)
-      {
-		if(wolf->chasecounter > wolf->chasespeed)//CHASE BLOCK
-        {
-            wolfchase(wolf, cow);
-            wolf->chasecounter=0;
-        }
-        else
-        {
-            wolf->chasecounter++;
-        }
-        wolfanim(wolf);
-      }
-      else
-      {
-      	randomwolfmove(wolf);
-      }*/
     }
 	
-    else if(wolf->type==1) //CHARGING TYPE
+    else if(type==1) //CHARGING TYPE
     {
-      if(!wolf->charging)
+      if(!charging)
       {
-        randomwolfmove(wolf);
-        if((wolf->x < cow->x+1) && (wolf->x > cow->x-1)) //CHECKS IF COW IS ON X+-1 TO WOLF
+        randomwolfmove();
+        if((x < cowx+1) && (x > cowx-1)) //CHECKS IF COW IS ON X+-1 TO WOLF
         {
-          if(wolf->y > cow->y) //IF WOLF IS BELOW
+          if(y > cowy) //IF WOLF IS BELOW
           {
-            wolf->movedirection = 0;
-            wolf->charging = true;
+            movedirection = 0;
+            charging = true;
           }
-          else if(wolf->y < cow->y) //ABOVE
+          else if(y < cowy) //ABOVE
           {
-            wolf->movedirection = 4;
-            wolf->charging = true;
+            movedirection = 4;
+            charging = true;
           }
         }
-        else if((wolf->y < cow->y+1) && (wolf->y > cow->y-1)) //CHECKS IF COW IS Y+-1
+        else if((y < cowy+1) && (y > cowy-1)) //CHECKS IF COW IS Y+-1
         {
-          if(wolf->x > cow->x) //IF WOLF IS TO THE RIGHT
+          if(x > cowx) //IF WOLF IS TO THE RIGHT
           {
-            wolf->movedirection = 6;
-            wolf->rotate = 0;
-            wolf->charging = true;
+            movedirection = 6;
+            rotate = 0;
+            charging = true;
           }
-          else if(wolf->x < cow->x) //LEFT
+          else if(x < cowx) //LEFT
           {
-            wolf->movedirection = 2;
-            wolf->rotate = 2;
-            wolf->charging = true;
+            movedirection = 2;
+            rotate = 2;
+            charging = true;
           }
         }
       }
-      if(wolf->charging)
+      if(charging)
       {
-        wolfcharging(wolf);
+        wolfcharging();
       }
     }
-    //draw_sprite(wolf->x, wolf->y, wolf->frame, wolf->rotate);
+    //draw_sprite(x, y, frame, rotate);
   }
   else
   {
-    wolf->spawning++;
-    wolfblink(wolf);
-    //draw_sprite(wolf->x, wolf->y, wolf->frame, wolf->rotate);
+    spawning++;
+    wolfblink();
+    //draw_sprite(x, y, frame, rotate);
   }
 }
