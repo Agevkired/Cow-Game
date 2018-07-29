@@ -1,149 +1,157 @@
-struct cow
+#define framelength 5
+#define eatinglength 5
+#define neutral 0
+#define walking 1 //+1, other side +2, all legs up
+#define eat 4 //starting +1,+2: chewing left and right
+
+class cow
 {
-  int x, y;
+  public:
+  int x, y; //position
   byte frame;
   byte animtimer;
   byte eatingtimer;
   byte rotate;
-  boolean animframe;
-  boolean eating;
-  boolean dead;
+  byte animbuffer[10];
+  bool animframe;
+  bool eating;
+  bool dead;
   int up, down, left, right, action;
+  //functions
+  void cowwalking();
+  void coweating();
+  void cowmove(int state);
 };
 
-void cowanim(struct cow *player)
+void cow::cowwalking()
 {
-  if(player->animtimer>5)
+  if(animtimer > framelength)
   {
-    if(player->frame==3)
+    if(frame==3)
     {
-      if(player->animframe)
+      if(animframe)
       {
-        player->frame=2;
-        player->animframe=false;
+        frame = walking+1;
+        animframe=false;
       }
       else
       {
-        player->frame=1;
-        player->animframe=true;
+        frame = walking;
+        animframe=true;
       }
     }
     else
     {
-      player->frame=3;
+      frame = walking+2;
     }
-    player->animtimer=0;
+    animtimer=0;
   }
   else
   {
-    player->animtimer++;
+    animtimer++;
   }
 }
 
-void coweating(struct cow *player)
+void cow::coweating()
 {
-  if(player->eatingtimer<5)
+  if(eatingtimer < eatinglength)
   {
-    if(player->animtimer>5)
+    if(animtimer > framelength)
     {
-      if(player->frame==0)
+      if(frame==neutral)
       {
-        if(player->animframe)
+        if(animframe)
         {
-          player->frame=6;
-          player->animframe=false;
-          player->eatingtimer++;
+          frame = eat+2;
+          animframe=false;
+          eatingtimer++;
         }
         else
         {
-          player->frame=5;
-          player->animframe=true;
-          player->eatingtimer++;
+          frame = eat+1;
+          animframe=true;
+          eatingtimer++;
         }
       }
       else
       {
-        player->frame=0;
+        frame=neutral;
       }
-      player->animtimer=0;
+      animtimer=0;
     }
     else
     {
-      player->animtimer++;
+      animtimer++;
     }
   }
   else
   {
-    player->eatingtimer=0;
-    player->eating=false;
+    eatingtimer=0;
+    eating=false;
   }
 }
 
-void cowmove(int state, struct cow *player, struct crosshair *cross)
+void cow::cowmove(int state)//, struct crosshair *cross)
 {
-  if(player->eating)
+  if(eating)
   {
-    coweating(player);
+    coweating();
   }
-  else
+  else //MOVING
   {
-    if (state & player->up)
+    if (state & up)
     {
-      if(player->y>64)
+      if(y>64)
       {
-        player->y--;
-        //cross->y--;
+        y--;
       }
-      cowanim(player);
+      cowwalking();
       //Serial.print("UP ");
     }
-    if (state & player->down)
+    if (state & down)
     {
-      if(player->y<256)
+      if(y<256)
       {
-        player->y++;
-        //cross->y++;
+        y++;
       }
-      cowanim(player);
+      cowwalking();
       //Serial.print("DOWN ");
     }
-    if (state & player->left)
+    if (state & left)
     {
-      if(player->x>32)
+      if(x>32)
       {
-        player->x--;
-        //cross->x--;
+        x--;
       }
-      player->rotate=0;
-      cowanim(player);
+      rotate=0;
+      cowwalking();
       //Serial.print("LEFT ");
     }
-    if (state & player->right)
+    if (state & right)
     {
-      if(player->x<368)
+      if(x<368)
       {
-        player->x++;
-        //cross->x++;
+        x++;
       }
-      player->rotate=2;
-      cowanim(player);
+      rotate=2;
+      cowwalking();
       //Serial.print("RIGHT ");
     }
-    if (state & player->action)
+    if (state & action)
     {
-      player->eating=true;
-      player->frame=4;
+      eating=true;
+      frame=eat;
     }
     if (state == 0) //Causes frame to lock if any button is held including start
     {
-      player->frame=0;
-      player->animtimer=0;
+      frame=neutral;
+      animtimer=0;
     }
   }
-  draw_sprite(player->x, player->y, player->frame, player->rotate);
+  draw_sprite(x, y, frame, rotate);
   //Serial.print("x: ");
-  //Serial.print(player->x);
+  //Serial.print(x);
   //Serial.print(" y: ");
-  //Serial.println(player->y);
+  //Serial.println(y);
   //delay(300);
 }
