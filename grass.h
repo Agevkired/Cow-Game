@@ -1,28 +1,33 @@
-struct grass
+#define grass_spr 41
+
+class grass
 {
+  public:
   int x, y;
-  boolean spawn;
+  bool spawned;
   uint16_t spawntimer; //time needed to respawn
   uint16_t spawning;   //counter
+  //function
+  void spawn();
 };
 
-void spawn(struct grass *grasses)
+void grass::spawn()
 {
-  if(!grasses->spawn)
+  if(!spawned)
   {
-    if(grasses->spawning>grasses->spawntimer)
+    if(spawning>spawntimer)
     {
-      grasses->x=random(32,369);//32-368
-      grasses->y=random(64,257);//64-256
-      grasses->spawn=true;
-      grasses->spawning=0;
+      x=random(32,369);//32-368
+      y=random(64,257);//64-256
+      spawned=true;
+      spawning=0;
     }
     else
     {
-      grasses->spawning++;
-      grasses->x=400;
-      grasses->y=400;
+      spawning++;
+      x=400;
+      y=400;
     }
   }
-  draw_sprite(grasses->x, grasses->y, 8, 0);
+  draw_sprite(x, y, grass_spr, 0);
 }
