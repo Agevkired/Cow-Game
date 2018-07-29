@@ -10,7 +10,7 @@ Game using Gameduino with a standard Arduino. This was implemented on a Duemilan
 * SNES controller library
 * An older driver for Atmega. The Gameduino library is incompatable with the newer one.
   
-The SNES controller is currently set to pins 5, 6, and 7.
+The SNES controller is currently set to pins 5, 6, and 7(strobe, clock, data).
 The high-score is reseted when the Arduino is turned off.
 
 # Controls:
