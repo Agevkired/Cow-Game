@@ -1,87 +1,94 @@
-struct crosshair
+#define crosshair_black 38
+#define crosshair_red	39
+#define shot_spr	40
+
+class crosshair
 {
+  public:
   int x, y;
-  boolean fire;
-  boolean buttondown;
-  boolean overwolf;
+  bool fire;
+  bool buttondown;
+  bool overwolf;
   int up, down, left, right, action;
   byte flashtimer; //how long gun flash linger
   int flashx, flashy; //flash coord
+  //function
+  void crosshairmove(int state, byte *crosshairspr);
 };
 
-void crosshairmove(int state, struct crosshair *player, byte *crosshairspr)
+void crosshair::crosshairmove(int state, byte *crosshairspr)
 {
-    if (state & player->up)
+    if (state & up)
     {
-      if(player->y>32)
+      if(y>32)
       {
-        player->y--;
-        player->y--;
+        y--;
+        y--;
       }
     }
-    if (state & player->down)
+    if (state & down)
     {
-      if(player->y<288)
+      if(y<288)
       {
-        player->y++;
-        player->y++;
+        y++;
+        y++;
       }
     }
-    if (state & player->left)
+    if (state & left)
     {
-      if(player->x>8)
+      if(x>8)
       {
-        player->x--;
-        player->x--;
+        x--;
+        x--;
       }
     }
-    if (state & player->right)
+    if (state & right)
     {
-      if(player->x<392)
+      if(x<392)
       {
-        player->x++;
-        player->x++;
+        x++;
+        x++;
       }
     }
-    if (state & player->action)
+    if (state & action)
     {
-      if(player->buttondown)
+      if(buttondown)
       {
-        player->fire = false;
+        fire = false;
         //draw_sprite(400, 400, 9, 0);
       }
       else
       {
-        //draw_sprite(player->x, player->y, 9, 0);
-        player->fire = true;
-		player->flashtimer = 0;
-		player->flashx = player->x;
-		player->flashy = player->y;
+        //draw_sprite(x, y, 9, 0);
+        fire = true;
+		flashtimer = 0;
+		flashx = x;
+		flashy = y;
       }
-      player->buttondown = true;
+      buttondown = true;
     }
     else
     {
-      player->buttondown = false;
+      buttondown = false;
 	  //draw_sprite(400, 400, 9, 0);
     }
-    if(player->flashtimer < 3){ //gunshot flash lasts 3 frames
-		draw_sprite(player->flashx, player->flashy, 9, 0);
-		player->flashtimer++;
+    if(flashtimer < 3){ //gunshot flash lasts 3 frames
+		draw_sprite(flashx, flashy, shot_spr, 0);
+		flashtimer++;
     }
     else{
-		draw_sprite(400, 400, 9, 0);
+		draw_sprite(400, 400, shot_spr, 0); //park sprite off screen
     }
 	(*crosshairspr) = GD.spr;
-	if(player->overwolf){
-		draw_sprite(player->x, player->y, 18, 0);
+	if(overwolf){
+		draw_sprite(x, y, crosshair_black, 0);
 	}
 	else{
-		draw_sprite(player->x, player->y, 7, 0);
+		draw_sprite(x, y, crosshair_red, 0);
 	}
-	//draw_sprite(player->x, player->y, 7, 0);
+	//draw_sprite(x, y, 7, 0);
 	/*Serial.print("cross x: ");
-	Serial.print(player->x);
+	Serial.print(x);
 	Serial.print(" cross y: ");
-	Serial.println(player->y);*/
+	Serial.println(y);*/
 }
