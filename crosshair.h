@@ -1,94 +1,143 @@
+#ifndef CROSSHAIR_H
+#define CROSSHAIR_H
+
+//#include "Arduino.h"
+
 #define crosshair_black 38
 #define crosshair_red	39
-#define shot_spr	40
+#define shot_spr		40
 
 class crosshair
 {
-  public:
-  int x, y;
-  bool fire;
-  bool buttondown;
-  bool overwolf;
-  int up, down, left, right, action;
-  byte flashtimer; //how long gun flash linger
-  int flashx, flashy; //flash coord
-  //function
-  void crosshairmove(int state, byte *crosshairspr);
+	public:
+		void crosshairmove(int state);
+		void setup();
+		void setcontrols(int u, int d, int l, int r, int a);
+		void setoverwolf(bool set);
+		void draw();
+		//getters
+		int getx();
+		int gety();
+		int getfx();
+		int getfy();
+		bool getfire();
+	private:
+		int x, y;
+		int flashx, flashy; //flash coord
+		bool overwolf;
+		bool fire;
+		bool buttondown;
+		int up, down, left, right, action;
+		byte flashtimer; //how long gun flash linger
 };
 
-void crosshair::crosshairmove(int state, byte *crosshairspr)
+void crosshair::crosshairmove(int state)
 {
     if (state & up)
     {
-      if(y>32)
-      {
-        y--;
-        y--;
-      }
+		if(y>32)
+		{
+			y--;
+			y--;
+		}
     }
     if (state & down)
     {
-      if(y<288)
-      {
-        y++;
-        y++;
-      }
+		if(y<288)
+		{
+			y++;
+			y++;
+		}
     }
     if (state & left)
     {
-      if(x>8)
-      {
-        x--;
-        x--;
-      }
+		if(x>8)
+		{
+			x--;
+			x--;
+		}
     }
     if (state & right)
     {
-      if(x<392)
-      {
-        x++;
-        x++;
-      }
+		if(x<392)
+		{
+			x++;
+			x++;
+		}
     }
     if (state & action)
     {
-      if(buttondown)
-      {
-        fire = false;
-        //draw_sprite(400, 400, 9, 0);
-      }
-      else
-      {
-        //draw_sprite(x, y, 9, 0);
-        fire = true;
-		flashtimer = 0;
-		flashx = x;
-		flashy = y;
-      }
-      buttondown = true;
+		if(buttondown)
+		{
+			fire = false;
+		}
+		else
+		{
+			fire = true;
+			flashtimer = 0;
+			flashx = x;
+			flashy = y;
+		}
+		buttondown = true;
     }
     else
     {
-      buttondown = false;
-	  //draw_sprite(400, 400, 9, 0);
+		buttondown = false;
     }
-    if(flashtimer < 3){ //gunshot flash lasts 3 frames
+	/*Serial.print("cross x: ");
+	Serial.print(x);
+	Serial.print(" cross y: ");
+	Serial.println(y);*/
+}
+
+void crosshair::setup()
+{
+	x = 200; //starts crosshair
+	y = 170;
+	fire = false;
+	buttondown = false;
+	flashx = 0;
+	flashy = 0;
+	flashtimer = 3; //set to flashtimer limit
+	overwolf = false;
+}
+
+void crosshair::setcontrols(int u, int d, int l, int r, int a)
+{
+	up=u;
+	down=d; 
+	left=l;
+	right=r;
+	action=a;
+}
+
+void crosshair::setoverwolf(bool set)
+{
+	overwolf = set;
+}
+
+void crosshair::draw()
+{
+	if(flashtimer < 3){ //gunshot flash lasts 3 frames
 		draw_sprite(flashx, flashy, shot_spr, 0);
 		flashtimer++;
     }
     else{
 		draw_sprite(400, 400, shot_spr, 0); //park sprite off screen
     }
-	(*crosshairspr) = GD.spr;
 	if(overwolf){
 		draw_sprite(x, y, crosshair_black, 0);
 	}
 	else{
 		draw_sprite(x, y, crosshair_red, 0);
 	}
-	//draw_sprite(x, y, 7, 0);
-	/*Serial.print("cross x: ");
-	Serial.print(x);
-	Serial.print(" cross y: ");
-	Serial.println(y);*/
 }
+
+//getters
+int crosshair::getx(){return x;}
+int crosshair::gety(){return y;}
+int crosshair::getfx(){return flashx;}
+int crosshair::getfy(){return flashy;}
+bool crosshair::getfire(){return fire;}
+
+#endif

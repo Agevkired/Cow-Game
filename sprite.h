@@ -20,14 +20,14 @@ case 3: //Walk 3
 GD.xsprite(x, y, xx, yy, 0, B1110, rot, jk);
 break;
 //1
-case 4: //starting eat
+case 4: //starting eat, head down
 GD.xsprite(x, y, xx, yy, 1, B1000, rot, jk);
 break;
-case 5: //eating 1
+case 5: //eating 1 mouth left
 GD.xsprite(x, y, xx, yy, 1, B1010, rot, jk);
 GD.xsprite(x, y, xx, yy, 9, B1001, rot, jk);
 break;
-case 6: //eating 2
+case 6: //eating 2 mouth right
 GD.xsprite(x, y, xx, yy, 0, B1000, rot, jk);
 if(rot!=0)
 {
@@ -187,7 +187,7 @@ break;
 case 49: //charger walk 3
 GD.xsprite(x, y, xx, yy, 14, B0100, rot, jk);
 break;
-case 50: //alert
+case 50: //alert (!)
 GD.xsprite(x, y, xx, yy, 14, B0110, rot, jk);
 break;
         }

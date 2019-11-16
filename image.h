@@ -1,3 +1,5 @@
+#ifndef IMAGE_H
+#define IMAGE_H
 
 static PROGMEM prog_uchar image_chr[] = {
 //INSERT IN ORDER LIKE SHOWN ON POSTER, NOT LITTLE ENDIAN
@@ -151,3 +153,4 @@ static PROGMEM prog_uchar image_pal[] = {
 0xFF, 0xFF, 0x64, 0x59, 0xCA, 0x59, 0xA8, 0x59,
 0xFF, 0xFF, 0x64, 0x59, 0xCA, 0x59, 0xA8, 0x59,
 };
+#endif
