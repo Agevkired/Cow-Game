@@ -10,11 +10,11 @@ class sprbuffer
 	public:
 		void insert(int xx, int yy, byte spr, byte rot);
 		void sortbuffer();
-		int getx(uint8_t select);
-		int gety(uint8_t select);
-		byte getspr(uint8_t select);
-		byte getrot(uint8_t select);
-		uint8_t getcounter();
+		int getx(byte select);
+		int gety(byte select);
+		byte getspr(byte select);
+		byte getrot(byte select);
+		byte getcounter();
 		void resetcounter();
 		//Default Constructor
 		sprbuffer(){
@@ -22,12 +22,12 @@ class sprbuffer
 		}
 	private:
 		int x[MAXSPRITES], y[MAXSPRITES];
-		uint8_t counter;
+		byte counter;
 		byte sprite[MAXSPRITES];
 		byte rotate[MAXSPRITES];
 };
 
-void sprbuffer::insert(int xx, int yy, uint8_t spr, byte rot)
+void sprbuffer::insert(int xx, int yy, byte spr, byte rot)
 {
 	x[counter] = xx;
 	y[counter] = yy;
@@ -66,28 +66,28 @@ void sprbuffer::sortbuffer() //bubble sort currently
 	}
 }
 
-int sprbuffer::getx(uint8_t select)
+int sprbuffer::getx(byte select)
 {
 	return x[select];
 }
 
-int sprbuffer::gety(uint8_t select)
+int sprbuffer::gety(byte select)
 {
 	return y[select];
 }
 
-byte sprbuffer::getspr(uint8_t select)
+byte sprbuffer::getspr(byte select)
 {
 	return sprite[select];
 }
 
 
-byte sprbuffer::getrot(uint8_t select)
+byte sprbuffer::getrot(byte select)
 {
 	return rotate[select];
 }
 
-uint8_t sprbuffer::getcounter()
+byte sprbuffer::getcounter()
 {
 	return counter;
 }

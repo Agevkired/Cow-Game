@@ -21,10 +21,14 @@
 #define speed 1 //future use
 #define chargespeed 2
 
-#define nborder 64
-#define sborder 256
+//#define nborder 64
+//#define sborder 256
+//#define wborder 32
+//#define eborder 368
+#define nborder 72
+#define sborder 472
 #define wborder 32
-#define eborder 368
+#define eborder 480
 
 #define chargerscore 100
 
@@ -47,9 +51,10 @@ class wolf
 		int gety();
 		byte getframe();
 		byte getrotate();
-		bool getspawn();
+		bool getspawned();
 		void setavoid();
 		byte getstatus();
+		byte getstate();
 	private:
 		//functions
 		void settrue(byte flag);
@@ -149,25 +154,31 @@ void wolf::wolfspawn(unsigned long score)
 			byte location = random(127)%4;
 			if(location==0) //NORTH
 			{
-				y=32;
-				x=random(24,377); //24-376
+				y=40;
+				//x=random(24,377); //24-376
+				x=random(32,481); //32-480
 			}
 			else if(location==1) //EAST
 			{
-				x=392;
+				//x=392;
+				x=504;
 				rotate=0;
-				y=random(64,257); //64-256
+				//y=random(64,257); //64-256
+				y=random(72,473); //64-464
 			}
 			else if(location==2) //SOUTH
 			{
-				y=288;
-				x=random(24,377);
+				//y=288;
+				y=504;
+				//x=random(24,377);
+				x=random(32,481);
 			}
 			else if(location==3) //WEST
 			{
 				x=8;
 				rotate=2;
-				y=random(64,257);
+				//y=random(64,257);
+				y=random(72,473);
 			}
 			//DETERMINE WOLF TYPE
 			type = 0; //default to chaser
@@ -506,7 +517,7 @@ void wolf::setup(long tempscorespawn, word respawn)
 
 void wolf::killed(word respawn)
 {
-	Serial.println("Killed");
+	//Serial.println("Killed");
 	x = 450; y = 450;;
 	counter = 0;   //counter
 	//**handled in spawning
@@ -534,7 +545,7 @@ void wolf::killed(word respawn)
 	//wstate = 0;
 }
 
-//PRIVATE FUNCTIONS
+//*****PRIVATE FUNCTIONS*****
 void wolf::settrue(byte flag)
 {
 /*	Serial.print("Set TRUE: ");
@@ -573,7 +584,7 @@ bool wolf::getflag(byte flag)
 	bool x = ((status & flag) == flag);
 	return x; //redundant but might fix quirk
 }
-//PRIVATE FUNCTIONS
+//*****END PRIVATE FUNCTIONS*****
 
 void wolf::setavoid(){settrue(avoid);}
 
@@ -582,7 +593,8 @@ int wolf::getx(){return x;}
 int wolf::gety(){return y;}
 byte wolf::getframe(){return frame;}
 byte wolf::getrotate(){return rotate;}
-bool wolf::getspawn(){return status & spawned;}
+bool wolf::getspawned(){return status & spawned;}
 byte wolf::getstatus(){return status;}
+byte wolf::getstate(){return status & wolfstate;}
 
 #endif

@@ -15,6 +15,9 @@ class grass
 		//getters
 		int getx();
 		int gety();
+		bool getspawned();
+		//setters
+		void setxy(int xx, int yy);
 	private:
 		int x, y;
 		bool spawned;
@@ -28,8 +31,10 @@ void grass::spawn()
 	{
 		if(spawning>spawntimer)
 		{
-			x=random(32,369);//32-368
-			y=random(64,257);//64-256
+			//x=random(32,369);//32-368
+			x=random(32,481);//32-368
+			//y=random(64,257);//64-256
+			y=random(72,473);//64-256
 			spawned=true;
 			spawning=0;
 		}
@@ -54,6 +59,8 @@ void grass::eaten()
 {
 	x=400;//move grass out of way
 	y=400;
+	spawntimer = 72;
+	spawning = 0;
 	spawned=false;
 }
 
@@ -67,10 +74,20 @@ int grass::gety()
 	return y;
 }
 
+bool grass::getspawned()
+{
+	return spawned;
+}
+
 byte grass::spr()
 {
 	return grass_spr;
 }
 
+void grass::setxy(int xx, int yy)
+{
+	x = xx;
+	y = yy;
+}
 
 #endif

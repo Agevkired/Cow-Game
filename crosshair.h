@@ -3,8 +3,8 @@
 
 //#include "Arduino.h"
 
-#define crosshair_black 38
-#define crosshair_red	39
+#define crosshair_red	38
+#define crosshair_black 39
 #define shot_spr		40
 
 class crosshair
@@ -126,10 +126,10 @@ void crosshair::draw()
 		draw_sprite(400, 400, shot_spr, 0); //park sprite off screen
     }
 	if(overwolf){
-		draw_sprite(x, y, crosshair_black, 0);
+		draw_sprite(x, y, crosshair_red, 0);
 	}
 	else{
-		draw_sprite(x, y, crosshair_red, 0);
+		draw_sprite(x, y, crosshair_black, 0);
 	}
 }
 

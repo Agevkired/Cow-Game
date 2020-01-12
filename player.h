@@ -8,6 +8,8 @@
 #define neutral 0
 #define walking 1 //+1, other side +2, all legs up
 #define eat 4 //starting +1,+2: chewing left and right
+#define COW_SPIRIT 54
+#define COW_DEAD 55
 
 class cow
 {
@@ -23,17 +25,20 @@ class cow
 		//getters
 		int getx();
 		int gety();
+		int getsx();
+		int getsy();
 		byte getframe();
 		byte getrotate();
 		bool getdead();
 		bool geteating();
 	private:
 		int x, y; //position
+		int sx, sy; //position on screen
 		byte frame;
 		byte animtimer;
 		byte eatingtimer;
 		byte rotate;
-		byte animbuffer[10];
+		//byte animbuffer[10];
 		bool animframe;
 		bool eating;
 		bool dead;
@@ -118,7 +123,7 @@ void cow::cowmove(int state)//, struct crosshair *cross)
 	{
 		if (state & up)
 		{
-			if(y>64)
+			if(y>72)
 			{
 				y--;
 			}
@@ -127,7 +132,8 @@ void cow::cowmove(int state)//, struct crosshair *cross)
 		}
 		if (state & down)
 		{
-			if(y<256)
+			//if(y<256)
+			if(y<472)
 			{
 				y++;
 			}
@@ -146,7 +152,8 @@ void cow::cowmove(int state)//, struct crosshair *cross)
 		}
 		if (state & right)
 		{
-			if(x<368)
+			//if(x<368)
+			if(x<480)
 			{
 				x++;
 			}
@@ -165,11 +172,44 @@ void cow::cowmove(int state)//, struct crosshair *cross)
 			animtimer=0;
 		}
 	}
+	//POSITION ON SCREEN (480, 464) (368, 256)
+	//x position
+	if((x >= 200) && (x < 311)) //scrolling
+	{
+		sx = 200;
+	}
+	else if(x < 200) //left (origin)
+	{
+		sx = x;
+	}
+	else //right
+	{
+		sx = 200+x-311; //400+111=511
+	}
+	//y position
+	if((y >= 150) && (y < 361)) //scrolling
+	{
+		sy = 150;
+	}
+	else if(y < 150) //up (origin)
+	{
+		sy = y;
+	}
+	else //down
+	{
+		sy = 150+y-361; //300+211=511
+	}
 	//draw_sprite(x, y, frame, rotate);
-	//Serial.print("x: ");
-	//Serial.print(x);
-	//Serial.print(" y: ");
-	//Serial.println(y);
+/*	
+	Serial.print("x: ");
+	Serial.print(x);
+	Serial.print(" y: ");
+	Serial.print(y);
+	Serial.print(" sx: ");
+	Serial.print(sx);
+	Serial.print(" sy: ");
+	Serial.println(sy);
+*/
 	//delay(300);
 }
 
@@ -177,6 +217,8 @@ void cow::setup()
 {
 	x = 200; //start player
 	y = 150;
+	sx = 200;
+	sy = 150;
 	frame = 0;
 	rotate = 0;
 	eatingtimer = 0;
@@ -207,6 +249,8 @@ void cow::setrotate(byte rot)
 //GETTERS
 int cow::getx(){return x;}
 int cow::gety(){return y;}
+int cow::getsx(){return sx;}
+int cow::getsy(){return sy;}
 byte cow::getframe(){return frame;}
 byte cow::getrotate(){return rotate;}
 bool cow::getdead(){return dead;}
