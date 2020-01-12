@@ -210,11 +210,6 @@ static void draw_BG()
 	GD.wr(atxy(23,1), fetchletter('R'));
 	GD.wr(atxy(24,0), fetchletter('E'));
 	GD.wr(atxy(24,1), fetchletter('E'));
-	
-	//34 35 36
-	GD.wr(atxy(34,0), fetchletter(initial[0]-32));
-	GD.wr(atxy(35,0), fetchletter(initial[1]-32));
-	GD.wr(atxy(36,0), fetchletter(initial[2]-32));
   
 	for(int n=26; n<33; n++)
 	{
@@ -378,11 +373,6 @@ void setup()
 	GD.copy(PALETTE16A, sprite_sprpal_16a, sizeof(sprite_sprpal_16a));
 	GD.copy(RAM_SPRIMG, sprite_sprimg, sizeof(sprite_sprimg));
 
-	//INITIALIZE HIGH SCORE INITIAL STRING
-	initial[0] = 'a';
-	initial[1] = 'a';
-	initial[2] = 'a';
-	initial[3] = 0;
 
 	GD.wr16(BG_COLOR, greenbg); //set bg transparent color
 	draw_BG();
@@ -397,6 +387,10 @@ void setup()
 
 	//switchsidetimer=0;
 	//printit=false;
+	initial[0] = 'a';
+	initial[1] = 'a';
+	initial[2] = 'a';
+	initial[3] = 0;
 	
 	//COPIED FROM GAMEDUINO SPLITSCREEN EXAMPLE
 	GD.wr16(COMM+0, 0); //1st x position
@@ -416,6 +410,132 @@ void loop()
 	//state = nintendo.buttons();
 	bool startPressed = true;
 	bool selectPressed = true;
+	/*
+	while(1)
+	{
+		state = nintendo.buttons();
+		GD.__wstartspr(0);
+		
+		
+		if((player.getx() >= 200) && (player.getx() < 311))
+		{
+			xscroll = player.getx() - 200;
+		}
+		else if(player.getx() < 200)
+		{
+			xscroll = 0;
+		}
+		else
+		{
+			xscroll = 111; //400+111=511
+		}
+		//y position
+		if((player.gety() >= 150) && (player.gety() < 361))
+		{
+			yscroll = player.gety() - 150;
+		}
+		else if(player.gety() < 150)
+		{
+			yscroll = 0;
+		}
+		else
+		{
+			yscroll = 211; //300+211=511
+		}
+		GD.wr16(COMM+6, xscroll);
+		GD.wr16(COMM+8, yscroll);
+		
+		draw_title(104, 72, 168, 112);
+		draw_blue_border();
+		while(GD.spr < 255)
+		{
+			GD.xhide();
+		}
+		GD.__end();
+		GD.waitvblank();
+		
+		//SELECT toggles left hand mode
+		/*
+		if(holdselect){ //prevent select being constantly detected when held
+			if(!(state & SNES_SELECT)){
+				holdselect = false;
+			}
+		}
+		else
+		{
+			if(state & SNES_SELECT){
+				holdselect = true;
+				if(lefty){
+					lefty = false;
+					GD.wr(atxy(22,2), BG_COW);
+					GD.wr(atxy(27,2), BG_CROSS);
+				}
+				else{
+					lefty = true;
+					GD.wr(atxy(22,2), BG_CROSS);
+					GD.wr(atxy(27,2), BG_COW);
+				}
+			}
+		}
+		
+		if(!(state & SNES_SELECT)){ //prevent select being constantly detected when held
+			selectPressed = false;
+		}
+		else if((state & SNES_SELECT) && !selectPressed){
+			selectPressed = true;
+			//lefty ^= true;
+			if(lefty){
+				lefty = false;
+				GD.wr(atxy(22,2), BG_COW);
+				GD.wr(atxy(27,2), BG_CROSS);
+			}
+			else{
+				lefty = true;
+				GD.wr(atxy(22,2), BG_CROSS);
+				GD.wr(atxy(27,2), BG_COW);
+			}
+		}
+		
+		
+		//START the game
+		if((state & SNES_START) && !startPressed){ 
+			startPressed = true;
+			title = false;
+			for(uint8_t m=13; m<=35; m++){
+				for(uint8_t n=9; n<=17; n++){
+					GD.wr(atxy(m,n), 0);
+				}
+			}
+			//Hide all sprites
+			GD.__wstartspr(0);
+			draw_blue_border();
+			while(GD.spr < 255)
+			{
+				GD.xhide();
+			}
+			GD.__end();
+			GD.waitvblank();
+			
+			//Serial.print(lefty);
+			gameloop();
+			state = 0; //just in case
+			//Serial.print(lefty);
+		}
+		else if(!(state & SNES_START))
+		{
+			startPressed = false;
+		}
+		//Serial.print("In Loop. Lefty: ");
+		//Serial.println(lefty);
+		//Serial.print("SNES state: ");
+		//Serial.println(state);
+		
+		//if(!title)
+		//{
+
+		//}
+	}
+	*/
 	titleloop();
 	gameloop();
 }
@@ -490,7 +610,7 @@ void titleloop()
 		}
 		else
 		{
-			//printTimer++;
+			printTimer++;
 			printit = false;
 		}
 		
@@ -593,7 +713,7 @@ void titleloop()
 		draw_blue_border();
 		drawword("press start", 1, 204, 152+16);
 		drawword("select", 1, 204, 152+48);
-		drawword("change controls", 1, 204, 152+68);
+		drawword("change controls", 1, 204, 152+64);
 		while(GD.spr < 255)
 		{
 			GD.xhide();
@@ -829,6 +949,9 @@ void gameloop()
 			
 			//buffer.insert(grasses[n].getx(), grasses[n].gety(), grasses[n].spr(), 0); //0 = no rotation
 		}
+		//grasses[0].setxy(32, 64);
+		//grasses[1].setxy(256, 264);
+		//grasses[2].setxy(480, 464);
 		
 		//Cow / Player
 		//player.cowmove(state);
@@ -861,6 +984,7 @@ void gameloop()
 			{
 				wolves[n].activate(player.getx(), player.gety(), score, printit, n); //ACTION
 			}
+			//buffer.insert(wolves[n].getx(), wolves[n].gety(), wolves[n].getframe(), wolves[n].getrotate());
 			if(rectcoll(wolves[n].getx(), wolves[n].gety(), SPRITESIZE, SPRITESIZE, xscroll, yscroll, 400, 300-32, -8, -8, 0, 32)
 				&& wolves[n].getspawned() ) //on screen
 			{
@@ -872,6 +996,17 @@ void gameloop()
 			}
 		}
 		
+		/*
+		for(uint8_t n=0; n<MAXOBJECTS; n++) //spawns wolves
+		{
+			wolves[n].wolfspawn(score);
+			if(wolves[n].getspawn()){
+				wolves[n].wolfmove(player.getx(), player.gety(), score);
+			}
+			buffer.insert(wolves[n].getx(), wolves[n].gety(), wolves[n].getframe(), wolves[n].getrotate());
+		}
+		*/
+		
 		//Crosshair
 		if(!pause)
 		{
@@ -880,7 +1015,6 @@ void gameloop()
 		//*****END SPRITES*****
 		
 		//*****DISPLAY SPRITES*****
-		//All Sprites On Field
 		buffer.sortbuffer();
 		for(byte n=0; n<buffer.getcounter(); n++)
 		{
@@ -888,32 +1022,99 @@ void gameloop()
 		}
 		
 		pcrosshair.draw(); //draw crosshair last
-		
-		//Blue Border and Current Controls Below Score
+		//buffer.resetcounter();
 		draw_blue_border();
 		
 		//Cow Spirit
 		if(player.getdead())
 		{
-			//do not draw if off screen
-			if((player.getsy()-int(deadtimer)/3) > -20)
-			{
-				draw_sprite(player.getsx(), player.getsy()-deadtimer/3, COW_SPIRIT, player.getrotate());
-				deadtimer++;
-			}
+			draw_sprite(player.getsx(), player.getsy()-deadtimer/3, COW_SPIRIT, player.getrotate());
+			deadtimer++;
 		}
 		//Game Over
 		//Serial.print("Before game over buttonpressed: ");
 		//Serial.println(buttonpressed);
 		if(player.getdead() && (lives==0))
 		{
+			pause = false;
+			//draw_sprite(181, 152, FG_GAME_SPR, 0);
+			//draw_sprite(217, 152, FG_OVER_SPR, 0);
+			//drawword("game", 1, 181-32, 152);
+			//drawword("over", 1, 217+32, 152);
+			//drawword("game", 0, 204, 152-16);
+			//drawword("game", 1, 204, 152); //currently 'm' center
+			//drawword("game", 2, 204, 152+16);
+			/*
+			drawword("game", 0, 204-48, 152+32); //touching
+			drawword("game", 2, 204+48, 152+32);
+			*/
 			if(score > oldscore)
 			{
-				//draw game over above center
+				//Serial.print("Inside high score buttonpressed: ");
+				//Serial.println(buttonpressed);
+				
 				drawword("game", 0, 204-60, 152-56);
 				drawword("over", 2, 204+60, 152-56);
-				//draw high score and initials close to center
+				
 				drawword("high score", 1, 204, 152-12);
+				//select letter to edit
+				if((state & SNES_LEFT) && !(buttonpressed & SNES_LEFT))//!dpadpressed)
+				{
+					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
+					if(letterselect == 0)
+					{
+						letterselect = 2;
+					}
+					else
+					{
+						letterselect--;
+					}
+				}
+				if((state & SNES_RIGHT) && !(buttonpressed & SNES_RIGHT))
+				{
+					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
+					if(letterselect == 2)
+					{
+						letterselect = 0;
+					}
+					else
+					{
+						letterselect++;
+					}
+				}
+				//select letter
+				if((state & SNES_UP) && !(buttonpressed & SNES_UP))
+				{
+					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
+					if(initial[letterselect] == 'a')
+					{
+						initial[letterselect] = 'z';
+					}
+					else
+					{
+						initial[letterselect]--;
+					}
+				}
+				if((state & SNES_DOWN) && !(buttonpressed & SNES_DOWN))
+				{
+					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
+					if(initial[letterselect] == 'z')
+					{
+						initial[letterselect] = 'a';
+					}
+					else
+					{
+						initial[letterselect]++;
+					}
+				}
+					
+				if(!(state & SNES_LEFT) && !(state & SNES_RIGHT) && !(state & SNES_UP) && !(state & SNES_DOWN))
+				{
+					buttonpressed &= ~SNES_LEFT & ~SNES_RIGHT & ~SNES_UP & ~SNES_DOWN;
+					//Serial.print("Inside dpad buttonpressed: ");
+					//Serial.println(buttonpressed);
+				}
+				
 				for(byte n=0; n<3; n++)
 				{
 					if((!letterblink) || (n != letterselect))
@@ -921,23 +1122,56 @@ void gameloop()
 						drawletter(initial[n], 204-14+(14*n), 152+12);
 					}
 				}
-				//timer to blink selected letter
 				letterblinktimer++;
 				if(letterblinktimer > 18)
 				{
 					letterblinktimer = 0;
 					letterblink ^= true;
 				}
-				//draw instructions to confirm input
 				drawword("press start to confirm", 1, 204, 152+48);
+				//Serial.print("Inside game over buttonpressed: ");
+				//Serial.println(buttonpressed);
+				if((state & SNES_START) && !(buttonpressed & SNES_START))
+				{
+					title = true;
+				}
 			}
+			else
+			{
+				drawword("game", 0, 204-60, 152);
+				drawword("over", 2, 204+60, 152);
+			}
+
 		}
 		//Pause
 		if(pause)
 		{
+			//draw_sprite(204, 152, FG_PAUSE_SPR, 0);
+			//drawword("pause", 0, 204, 152-16);
 			drawword("pause", 1, 204, 152);
+			//drawword("pause", 2, 204, 152+16);
 		}
-
+/*
+		//draw blue border on upper part of screen
+		for(int n=0; n<25; n++)
+		{
+			draw_sprite(8+16*n, 24, BG_BLUE_SPR, 0);
+		}
+		//draw controller
+		draw_sprite(168, 24, BG_CONTR_L, 0);
+		draw_sprite(232, 24, BG_CONTR_R, 0);
+		//draw which side controls what (default L:cow R:farmer)
+		if(lefty)
+		{
+			draw_sprite(216, 22, 0, 0); //draw cow
+			draw_sprite(184, 24, 38, 0); //draw crosshair
+		}
+		else
+		{
+			draw_sprite(184, 22, 0, 0);
+			draw_sprite(216, 24, 38, 0);
+		}
+*/
 		//hide unused
 		while(GD.spr < 255)
 		{
@@ -1001,25 +1235,25 @@ void gameloop()
 		}
 		if(deadtimer > DEADLENGTH + (int(lives==0)*144))//player.getdead())
 		{
+			Serial.print("deadtimer: ");
+			Serial.print(deadtimer);
+			Serial.print(", DEADLENGTH: ");
+			Serial.println(DEADLENGTH + (int(lives==0)*144));
+			deadtimer = 0;
 			for(uint16_t n=0; n<MAXOBJECTS; n++)
 			{
 				wolves[n].killed(144+(144*n)); //72 = 1 second
 			}
 			bonus=0;
+			player.setup();
 			if((lives==0) && (score <= oldscore))
 			{
 				title = true;
 				//setupgame();
 			}
-			else if(lives > 0)
+			else
 			{
 				lives--;
-				deadtimer = 0;
-				player.setup();
-				for(uint16_t n=0; n<MAXOBJECTS; n++)
-				{
-					wolves[n].killed(144+(144*n)); //72 = 1 second
-				}
 			}
 		}
 		pcrosshair.setoverwolf(false);
@@ -1056,78 +1290,6 @@ void gameloop()
 		}
 		//*****END COLLISION*****
 		
-		//GAME OVER
-		if(player.getdead() && (lives==0))
-		{
-			pause = false;
-			//if high score
-			if(score > oldscore)
-			{
-				//select letter to edit
-				if((state & SNES_LEFT) && !(buttonpressed & SNES_LEFT))//!dpadpressed)
-				{
-					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
-					if(letterselect == 0)
-					{
-						letterselect = 2;
-					}
-					else
-					{
-						letterselect--;
-					}
-				}
-				if((state & SNES_RIGHT) && !(buttonpressed & SNES_RIGHT))
-				{
-					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
-					if(letterselect == 2)
-					{
-						letterselect = 0;
-					}
-					else
-					{
-						letterselect++;
-					}
-				}
-				//cycle letter
-				if((state & SNES_UP) && !(buttonpressed & SNES_UP))
-				{
-					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
-					if(initial[letterselect] == 'a')
-					{
-						initial[letterselect] = 'z';
-					}
-					else
-					{
-						initial[letterselect]--;
-					}
-				}
-				if((state & SNES_DOWN) && !(buttonpressed & SNES_DOWN))
-				{
-					buttonpressed |= SNES_LEFT | SNES_RIGHT | SNES_UP | SNES_DOWN;
-					if(initial[letterselect] == 'z')
-					{
-						initial[letterselect] = 'a';
-					}
-					else
-					{
-						initial[letterselect]++;
-					}
-				}
-					
-				if(!(state & SNES_LEFT) && !(state & SNES_RIGHT) && !(state & SNES_UP) && !(state & SNES_DOWN))
-				{
-					buttonpressed &= ~SNES_LEFT & ~SNES_RIGHT & ~SNES_UP & ~SNES_DOWN;
-					//Serial.print("Inside dpad buttonpressed: ");
-					//Serial.println(buttonpressed);
-				}
-				//Serial.print("Inside game over buttonpressed: ");
-				//Serial.println(buttonpressed);
-				if((state & SNES_START) && !(buttonpressed & SNES_START))
-				{
-					title = true;
-				}
-			}
-		}
 		//UPDATE SCORES
 		if(!pause) //don't check when paused
 		{
@@ -1221,11 +1383,37 @@ void gameloop()
 			yscroll = 211; //300+211=511
 		}
 		GD.wr16(COMM+6, xscroll);
-		GD.wr16(COMM+8, yscroll);
+		GD.wr16(COMM+8, yscroll); //offset by 1 due to line 511 being on top of screen
 		//*****END UPDATE CAMERA POSITION*****
 	}
 	//END OF GAME LOOP
 	
+	/*
+	GD.__wstartspr(0);
+	for(byte n=0; n<buffer.getcounter(); n++)
+	{
+		draw_sprite(buffer.getx(n), buffer.gety(n), buffer.getspr(n), buffer.getrot(n));
+	}
+	pcrosshair.draw(); //draw crosshair last
+	//buffer.resetcounter();
+	draw_blue_border();
+	//DRAW GAME OVER HERE
+	while(GD.spr < 255)
+	{
+		GD.xhide();
+	}
+	GD.__end();
+	*/
+/*	
+	GD.wr(atxy(20,2), fetchletter('G')); //G DRAW GAME OVER
+	GD.wr(atxy(21,2), fetchletter('A')); //A 
+	GD.wr(atxy(22,2), fetchletter('M')); //M
+	GD.wr(atxy(23,2), fetchletter('E')); //E
+	GD.wr(atxy(26,2), fetchletter('O')); //O
+	GD.wr(atxy(27,2), fetchletter('V')); //V
+	GD.wr(atxy(28,2), fetchletter('E')); //E
+	GD.wr(atxy(29,2), fetchletter('R')); //R
+*/
 	GD.__wstartspr(0);
 	draw_blue_border();
 	while(GD.spr < 255)
@@ -1233,6 +1421,7 @@ void gameloop()
 		GD.xhide();
 	}
 	GD.__end();
+	//delay(3000);
 	setupgame(); //RESET EVERYTHING EXCEPT HIGH SCORE
 	GD.copy(RAM_CHR, image_chr, sizeof(image_chr));
 	GD.copy(RAM_PAL, image_pal, sizeof(image_pal));
