@@ -25,3 +25,8 @@ The cow uses the left half of the controller and the farmer uses the right half.
 * Start: start game, pause game
 * Select: only in title screen, cow and gun controls swap sides
 * Start + Select: only in-game, reset game
+
+# Resources:
+
+* Gameduino poster: https://drive.google.com/open?id=1tJNmtkq-SvkcLh3P9yD57E0uEu3egMDu
+* Background and sprite encoding tool: https://drive.google.com/open?id=18G-xYFF1IhWlKaPzAGVqMoo_PwC7Eu1q
