@@ -23,7 +23,7 @@ The cow uses the left half of the controller and the farmer uses the right half.
 * ABXY: move crosshair
 * R: fire gun
 * Start: start game, pause game
-* Select: only in title screen, cow and gun controls swap sides
+* Select: swap cow and gun controls (d-pad+L = gun, abxy+R = cow), indicated below score, title screen only
 * Start + Select: only in-game, reset game
 
 # Resources:
